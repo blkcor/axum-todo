@@ -1,6 +1,9 @@
+pub mod config;
 pub mod db;
 pub mod error;
+pub mod form;
 pub mod handler;
+pub mod model;
 pub mod view;
 
 /*
@@ -8,3 +11,8 @@ pub mod view;
 */
 
 pub type Result<T> = std::result::Result<T, error::AppError>;
+
+pub struct AppState {
+    /// 数据库连接
+    pub pool: deadpool_postgres::Pool,
+}

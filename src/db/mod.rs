@@ -1,9 +1,10 @@
-mod paginate;
+pub mod category;
+pub mod paginate;
 /*
 通用的sql操作
 */
 
-use deadpool_postgres::GenericClient;
+use deadpool_postgres::{Client, GenericClient};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::{
     types::{FromSqlOwned, ToSql},
@@ -163,4 +164,17 @@ where
     let data = query(client, sql, params).await?;
     let total_records = count(client, count_sql, params).await?;
     Ok(Paginate::new(page, DEFAULT_PAGE_SIZE, total_records, data))
+}
+
+/*
+    删除或者恢复记录
+*/
+async fn del_or_restore(
+    client: &Client,
+    table: &str,
+    id: &(dyn ToSql + Sync),
+    is_del: bool,
+) -> Result<u64> {
+    let sql = format!("UPDATE {} SET is_del=$1 WHERE id=$2", table);
+    self::execute(client, &sql, &[&is_del, id]).await
 }

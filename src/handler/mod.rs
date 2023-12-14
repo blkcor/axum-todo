@@ -1,7 +1,11 @@
 use askama::Template;
-use axum::response::Html;
+use axum::{
+    http::{header, HeaderMap, StatusCode},
+    response::Html,
+};
+use deadpool_postgres::Client;
 
-use crate::{error::AppError, Result};
+use crate::{error::AppError, AppState, Result};
 
 pub mod backend;
 pub mod frontend;
@@ -24,4 +28,16 @@ fn log_error(handler_name: &str) -> Box<dyn Fn(AppError) -> AppError> {
         tracing::error!("操作失败：{:?},  {}", err, handler_name);
         err
     })
+}
+
+type RedirectView = (StatusCode, HeaderMap, ());
+
+fn redirect(url: &str) -> Result<RedirectView> {
+    let mut hm = HeaderMap::new();
+    hm.append(header::LOCATION, url.parse().unwrap());
+    Ok((StatusCode::FOUND, hm, ()))
+}
+
+async fn get_client(state: &AppState) -> Result<Client> {
+    state.pool.get().await.map_err(AppError::from)
 }

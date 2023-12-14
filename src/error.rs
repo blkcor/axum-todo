@@ -7,6 +7,7 @@ pub enum AppErrorType {
     NotFound,
     DB,
     Template,
+    Dumplicate,
 }
 
 #[derive(Debug)]
@@ -51,6 +52,10 @@ impl AppError {
 
     pub fn notfound() -> Self {
         Self::notfound_str("Not Found")
+    }
+
+    pub fn dumplicate(message: &str) -> Self {
+        Self::from_str(message, AppErrorType::Dumplicate)
     }
 }
 
