@@ -74,3 +74,15 @@ pub async fn edit(
         .map_err(log_error(handler_name))?;
     redirect("/admin/category?msg=分类修改成功")
 }
+
+pub async fn del(
+    Extension(state): Extension<Arc<AppState>>,
+    Path(id): Path<i32>,
+) -> Result<RedirectView> {
+    let handler_name = "backend/category/del";
+    let client = get_client(&state).await.map_err(log_error(handler_name))?;
+    category_db::del_or_restore(&client, id, true)
+        .await
+        .map_err(log_error(handler_name))?;
+    redirect("/admin/category?msg=分类删除成功")
+}
