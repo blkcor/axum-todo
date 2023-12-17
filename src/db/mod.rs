@@ -1,5 +1,6 @@
 pub mod category;
 pub mod paginate;
+pub mod topic;
 /*
 通用的sql操作
 */
