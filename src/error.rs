@@ -1,6 +1,9 @@
 //统一错误处理模块
 
-use axum::response::IntoResponse;
+use axum::{
+    http::{header, HeaderMap, StatusCode},
+    response::IntoResponse,
+};
 
 #[derive(Debug)]
 pub enum AppErrorType {
@@ -8,6 +11,9 @@ pub enum AppErrorType {
     DB,
     Template,
     Dumplicate,
+    Crypt,
+    IncorrectLogin,
+    Forbidden,
 }
 
 #[derive(Debug)]
@@ -57,6 +63,27 @@ impl AppError {
     pub fn dumplicate(message: &str) -> Self {
         Self::from_str(message, AppErrorType::Dumplicate)
     }
+
+    pub fn incorrect_login() -> Self {
+        Self::from_str("错误的邮箱或密码", AppErrorType::IncorrectLogin)
+    }
+    pub fn forbidden() -> Self {
+        Self::from_str("无权访问", AppErrorType::Forbidden)
+    }
+    pub fn response(self) -> axum::response::Response {
+        match self.types {
+            AppErrorType::Forbidden => {
+                let mut hm = HeaderMap::new();
+                hm.insert(header::LOCATION, "/auth".parse().unwrap());
+                (StatusCode::FOUND, hm, ()).into_response()
+            }
+            _ => self
+                .message
+                .to_owned()
+                .unwrap_or("有错误发生".to_string())
+                .into_response(),
+        }
+    }
 }
 
 impl std::fmt::Display for AppError {
@@ -104,5 +131,11 @@ impl IntoResponse for AppError {
             None => "有错误发生".to_string(),
         };
         msg.into_response()
+    }
+}
+
+impl From<bcrypt::BcryptError> for AppError {
+    fn from(err: bcrypt::BcryptError) -> Self {
+        Self::from_err(Box::new(err), AppErrorType::Crypt)
     }
 }

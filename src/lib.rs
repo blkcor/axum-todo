@@ -1,10 +1,13 @@
 pub mod config;
+pub mod cookie;
 pub mod db;
 pub mod error;
 pub mod form;
 pub mod handler;
 pub mod md;
+pub mod middleware;
 pub mod model;
+pub mod password;
 pub mod view;
 
 /*

@@ -1,11 +1,11 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::extract::Extension;
+use axum::extract::{extractor_middleware, Extension};
 use axum::Router;
 use axum_todo::config::Config;
 use axum_todo::handler::{backend, frontend};
-use axum_todo::AppState;
+use axum_todo::{middleware, AppState};
 
 #[tokio::main]
 async fn main() {
@@ -20,7 +20,7 @@ async fn main() {
     tracing_subscriber::fmt::init();
     //routers init
     let frentend_routers = frontend::router();
-    let backend_routers = backend::router();
+    let backend_routers = backend::router().layer(extractor_middleware::<middleware::Auth>());
     let app = Router::new()
         .nest("/", frentend_routers)
         .nest("/admin", backend_routers)

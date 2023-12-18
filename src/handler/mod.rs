@@ -5,8 +5,9 @@ use axum::{
 };
 use deadpool_postgres::Client;
 
-use crate::{error::AppError, AppState, Result};
+use crate::{cookie, error::AppError, AppState, Result};
 
+pub mod auth;
 pub mod backend;
 pub mod frontend;
 
@@ -33,8 +34,15 @@ fn log_error(handler_name: &str) -> Box<dyn Fn(AppError) -> AppError> {
 type RedirectView = (StatusCode, HeaderMap, ());
 
 fn redirect(url: &str) -> Result<RedirectView> {
-    let mut hm = HeaderMap::new();
-    hm.append(header::LOCATION, url.parse().unwrap());
+    redirect_with_cookie(url, None)
+}
+
+fn redirect_with_cookie(url: &str, c: Option<&str>) -> Result<RedirectView> {
+    let mut hm = match c {
+        Some(s) => cookie::set_cookie(s),
+        None => HeaderMap::new(),
+    };
+    hm.insert(header::LOCATION, url.parse().unwrap());
     Ok((StatusCode::FOUND, hm, ()))
 }
 
